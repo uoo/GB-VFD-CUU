@@ -3,7 +3,7 @@
 #include <Noritake_VFD_CUU.h>
 #include <util/delay.h>
 
-CUU_Serial interface(1, 0, 2); // SIO, STB, SCK
+CUU_Serial interface(3, 4, 5); // SIO, STB, SCK
 
 Noritake_VFD_CUU vfd;
 
@@ -88,6 +88,7 @@ setup()
   //vfd.brightnessBoost(); // module has brightness boost
  
   vfd.CUU_init();      // initialize module
+  vfd.CUU_brightness(1);
 
   vfd.CUU_createChar(0, c12);
   vfd.CUU_createChar(1, c3);
@@ -105,19 +106,34 @@ void
 loop()
 {
   int       m = millis() / 1000;
+  boolean   leading;
   uint16_t  val;
   uint16_t  digit;
 
   if (m != last) {
+    leading = false;
     vfd.CUU_clearScreen();
     vfd.CUU_setCursor(0, 0);
     vfd.print("CP, P Set=");
     val = random() % 1000;
     digit = val / 100;
-    vfd.print(digit + '0');
+  
+    if (digit == 0) {
+      vfd.print(' ');
+      leading = true;
+    } else {
+      vfd.print(digit + '0');
+    }
+  
     val -= digit * 100;
     digit = val / 10;
-    vfd.print(digit + '0');
+  
+    if (leading && (digit == 0)) {
+      vfd.print(' ');
+    } else {
+      vfd.print(digit + '0');
+    }
+  
     val -= digit * 10;
     vfd.print(val + '0');
     vfd.print(".");
@@ -129,7 +145,13 @@ loop()
     vfd.print("LOAD V=");
     val = random() % 100;
     digit = val / 10;
-    vfd.print(digit + '0');
+
+    if (digit == 0) {
+      vfd.print(' ');
+    } else {
+      vfd.print(digit + '0');
+    }
+  
     val -= digit * 10;
     vfd.print(val + '0');
     vfd.print(".");
